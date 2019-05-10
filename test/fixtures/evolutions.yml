@@ -1,0 +1,11 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  pkmn_id: 1
+  order: 1
+  pkmn_previous_stage: 1
+
+two:
+  pkmn_id: 1
+  order: 1
+  pkmn_previous_stage: 1
