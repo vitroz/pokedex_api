@@ -3,6 +3,6 @@ class Pokemon < ApplicationRecord
   has_many :types_pokemon
   has_many :types, through: :types_pokemon
 
-
   validates_presence_of :name
+
 end
