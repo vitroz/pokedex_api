@@ -2,6 +2,10 @@ require "httparty"
 
 namespace :pokemon do
 
+  task :loading_msg  do
+    p 'This might take a few moments, please wait.'
+  end
+
   task :all_pokemon => [:environment] do 
     desc "used to populate pokemons"
 
@@ -41,7 +45,9 @@ namespace :pokemon do
     evo_chains = evo_chains.parsed_response["results"]
 
     evo_chains.each do |evolution_chain|
+
       flag_pkmn_baby = false
+      order = 0
 
       pkmn_evolve = HTTParty.get(evolution_chain["url"])
       pkmn_evolve_base = pkmn_evolve.parsed_response["chain"]
@@ -57,32 +63,35 @@ namespace :pokemon do
       has_evolution = ! flag_pkmn_baby && ! pkmn_evolve.parsed_response["chain"]["evolves_to"].empty?
 
       if has_evolution
-        evo_json = pkmn_evolve.parsed_response["chain"]["evolves_to"][0]
-        if evolution = Pokemon.find_by(name: evo_json["species"]["name"])
-          pkmn_base = Pokemon.find_by(name: pkmn_evolve_base["species"]["name"])
-          Evolution.create(pkmn_id: evolution.id, order: 1, pkmn_previous_stage_id: pkmn_base.id);
+        evolutions = pkmn_evolve.parsed_response["chain"]["evolves_to"]
+        order += 1
+
+        evolutions.each do |evolution_pkmn|
+          if evolution = Pokemon.find_by(name: evolution_pkmn["species"]["name"])
+            pkmn_base = Pokemon.find_by(name: pkmn_evolve_base["species"]["name"])
+            Evolution.create(pkmn_id: evolution.id, order: order, pkmn_previous_stage_id: pkmn_base.id);
+          end
         end
+
       end
 
-      has_second_evolution = evo_json != nil && evo_json["evolves_to"][0]
+      has_second_evolution = evolutions != nil && ! evolutions[0]["evolves_to"].empty?
 
       if has_second_evolution
-        second_stage_evo_json = evo_json["evolves_to"][0]
+        second_stage_evo_json = evolutions[0]["evolves_to"][0]
         if second_evolution = Pokemon.find_by(name: second_stage_evo_json["species"]["name"])
-          second_evolution = Pokemon.find_by(name: second_stage_evo_json["species"]["name"])        
-          Evolution.create(pkmn_id: second_evolution.id, order: 2, pkmn_previous_stage_id: evolution.id);
+          order += 1      
+          Evolution.create(pkmn_id: second_evolution.id, order: order, pkmn_previous_stage_id: evolution.id);
         end
+
       end
 
     end
-
-
   end
-
 
   task :success_msg => [:environment] do 
     p "Database populated with all 151 Pokemons, its evolutions and types."
   end
 
-  task :all => [:all_pokemon, :evolutions, :types, :success_msg]
+  task :all => [:loading_msg, :all_pokemon, :evolutions, :types, :success_msg]
 end
