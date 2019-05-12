@@ -10,7 +10,6 @@ namespace :pokemon do
     desc "used to populate pokemons"
 
     url = "https://pokeapi.co/api/v2/pokemon/?limit=151"
-    pokemons = []
     req = HTTParty.get(url)
     pokemons = req.parsed_response["results"]
 
@@ -33,8 +32,8 @@ namespace :pokemon do
           TypesPokemon.create(pokemon_id: pokemon.id, type_id: type_app.id)
         end
       end
-    end
 
+    end
 
   end
 
@@ -56,26 +55,26 @@ namespace :pokemon do
         pkmn_evolve_base = pkmn_evolve.parsed_response["chain"]["evolves_to"][0]
         flag_pkmn_baby = true
         pkmn_base = Pokemon.find_by(name: pkmn_evolve_base["species"]["name"])
-        evo_json = pkmn_evolve.parsed_response["chain"]["evolves_to"][0]
+        evolutions = pkmn_evolve.parsed_response["chain"]["evolves_to"]
         evolution = pkmn_base    
-      end
+      end  
 
-      has_evolution = ! flag_pkmn_baby && ! pkmn_evolve.parsed_response["chain"]["evolves_to"].empty?
+      has_evolution = ! flag_pkmn_baby && ! pkmn_evolve.parsed_response["chain"]["evolves_to"].empty?  
 
       if has_evolution
         evolutions = pkmn_evolve.parsed_response["chain"]["evolves_to"]
-        order += 1
+        order += 1  
 
         evolutions.each do |evolution_pkmn|
           if evolution = Pokemon.find_by(name: evolution_pkmn["species"]["name"])
             pkmn_base = Pokemon.find_by(name: pkmn_evolve_base["species"]["name"])
             Evolution.create(pkmn_id: evolution.id, order: order, pkmn_previous_stage_id: pkmn_base.id);
           end
-        end
+        end  
 
-      end
+      end  
 
-      has_second_evolution = evolutions != nil && ! evolutions[0]["evolves_to"].empty?
+      has_second_evolution = evolutions != nil && ! evolutions[0]["evolves_to"].empty?  
 
       if has_second_evolution
         second_stage_evo_json = evolutions[0]["evolves_to"][0]
@@ -83,10 +82,11 @@ namespace :pokemon do
           order += 1      
           Evolution.create(pkmn_id: second_evolution.id, order: order, pkmn_previous_stage_id: evolution.id);
         end
+      end  
 
-      end
 
     end
+    
   end
 
   task :success_msg => [:environment] do 
