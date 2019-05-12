@@ -34,7 +34,7 @@ class PokemonsController < ApplicationController
         evolution = Evolution.create(
           pkmn_id: evolution["pkmn_id"], 
           order: evolution["order"], 
-          pkmn_previous_stage_id: evolution["pkmn_previous_stage_id"]);
+          pkmn_previous_stage_id: evolution["pkmn_previous_stage_id"])
       end
       render json: {status: "success", code: 200, message: "Pokemon created!"}
       return
