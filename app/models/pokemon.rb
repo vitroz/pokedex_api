@@ -7,6 +7,7 @@ class Pokemon < ApplicationRecord
   validates_presence_of :name
 
   class_attribute :evolution_family
+  self.evolution_family = []
 
   def check_if_exists
     if Pokemon.exists?(name: self.name)
@@ -15,7 +16,6 @@ class Pokemon < ApplicationRecord
   end
 
   def return_evolution_family
-    self.evolution_family = []
 
     if not self.evolutions.empty?
       is_base = ! Evolution.find_by(pkmn_id: self.id)
@@ -60,6 +60,8 @@ class Pokemon < ApplicationRecord
         end   
       end  
     end
+
+    evolution_family = evolution_family.uniq { |h| h[:pkmn_id] } #eevee
 
     return evolution_family
 

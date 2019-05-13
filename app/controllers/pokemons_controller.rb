@@ -3,7 +3,7 @@ class PokemonsController < ApplicationController
   def index
     @pokemons = Pokemon.all
     if not @pokemons.empty?
-      render json: @pokemons
+      render json: @pokemons, each_serializer: AllPokemonSerializer
       return
     end
     render json: {status: "error", code: 404, message: "Pokemons not found"}
@@ -13,7 +13,7 @@ class PokemonsController < ApplicationController
     pokemon = Pokemon.find(params[:id])
     if pokemon
       pokemon.return_evolution_family
-      render json: pokemon
+      render json: pokemon 
       return
     end
       render json: {status: "error", code: 404, message: "Pokemon not found"}
