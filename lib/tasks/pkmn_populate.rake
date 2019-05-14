@@ -11,30 +11,13 @@ namespace :pokemon do
 
     url = "https://pokeapi.co/api/v2/pokemon/?limit=151"
     req = HTTParty.get(url)
-    pokemons = req.parsed_response["results"]
-
-    pokemons.each do |pokemon|
-      Pokemon.create(name: pokemon["name"])
+    pokemons_json = req.parsed_response["results"]
+    pokemons = []
+    pokemons_json.each do |pokemon|
+      pokemons << Pokemon.new(name: pokemon["name"])
     end
-  end
-
-  task :types => [:environment] do
-    pokemons = Pokemon.all
-
-    pokemons.each do |pokemon|
-      url_type = "https://pokeapi.co/api/v2/pokemon/#{pokemon.id}/"
-      req_type = HTTParty.get(url_type)
-      pkmn_types = req_type.parsed_response["types"]
-
-      pkmn_types.each do |type|
-        type_app = Type.find_by(name: type["type"]["name"])
-        if type_app
-          TypesPokemon.create(pokemon_id: pokemon.id, type_id: type_app.id)
-        end
-      end
-
-    end
-
+    Pokemon.import pokemons
+    p '151 Pokemons imported'
   end
 
   task :evolutions => [:environment] do 
@@ -42,6 +25,7 @@ namespace :pokemon do
     evo_chains_url = "https://pokeapi.co/api/v2/evolution-chain/?limit=78"
     evo_chains = HTTParty.get(evo_chains_url)
     evo_chains = evo_chains.parsed_response["results"]
+    evolution_relation = []
 
     evo_chains.each do |evolution_chain|
 
@@ -68,7 +52,7 @@ namespace :pokemon do
         evolutions.each do |evolution_pkmn|
           if evolution = Pokemon.find_by(name: evolution_pkmn["species"]["name"])
             pkmn_base = Pokemon.find_by(name: pkmn_evolve_base["species"]["name"])
-            Evolution.create(pkmn_id: evolution.id, order: order, pkmn_previous_stage_id: pkmn_base.id);
+            evolution_relation << Evolution.new(pkmn_id: evolution.id, order: order, pkmn_previous_stage_id: pkmn_base.id)
           end
         end  
 
@@ -80,13 +64,31 @@ namespace :pokemon do
         second_stage_evo_json = evolutions[0]["evolves_to"][0]
         if second_evolution = Pokemon.find_by(name: second_stage_evo_json["species"]["name"])
           order += 1      
-          Evolution.create(pkmn_id: second_evolution.id, order: order, pkmn_previous_stage_id: evolution.id);
+          evolution_relation << Evolution.new(pkmn_id: second_evolution.id, order: order, pkmn_previous_stage_id: evolution.id)
         end
       end  
+    end
+    Evolution.import evolution_relation
+    p 'Pokemon Evolutions added'
+  end
 
+  task :types => [:environment] do
+    pokemons = Pokemon.all
+    pokemons.each do |pokemon|
+      url_type = "https://pokeapi.co/api/v2/pokemon/#{pokemon.id}/"
+      req_type = HTTParty.get(url_type)
+      pkmn_types = req_type.parsed_response["types"]
+
+      pkmn_types.each do |type|
+        type_app = Type.find_by(name: type["type"]["name"])
+        if type_app
+          TypesPokemon.create(pokemon_id: pokemon.id, type_id: type_app.id)
+        end
+
+      end
 
     end
-    
+    p 'Pokemon types added'
   end
 
   task :success_msg => [:environment] do 

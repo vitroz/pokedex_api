@@ -20,22 +20,22 @@ class PokemonsController < ApplicationController
   end
 
   def create
-    pokemon = Pokemon.new(pkmn_params)
     req_params = JSON.parse(request.body.read)
-    types = req_params["types"]
-    evolutions = req_params["evolutions"]
+    pokemon = Pokemon.new(name: req_params["pokemon"]["name"])
+    types = req_params["pokemon"]["types"]
+    evolutions = req_params["pokemon"]["evolutions"]
+
+    if types[0]["id"] == "" && types[1]["id"] == ""
+      render json: {status: "error", code: 500, message: "Cannot create pokemon without type!"}
+      return
+    end
  
     if pokemon.save
+
       types.each do |type|
         TypesPokemon.create(pokemon_id: pokemon.id, type_id: type["id"])
       end
 
-      evolutions.each do |evolution|
-        evolution = Evolution.create(
-          pkmn_id: evolution["pkmn_id"], 
-          order: evolution["order"], 
-          pkmn_previous_stage_id: evolution["pkmn_previous_stage_id"])
-      end
       render json: {status: "success", code: 200, message: "Pokemon created!"}
       return
     end
@@ -54,8 +54,7 @@ class PokemonsController < ApplicationController
 
   def destroy
     pokemon = Pokemon.find(params[:id])
-    if pokemon
-      pokemon.destroy
+    if pokemon.destroy
       render json: {status: "success", code: 200, message: "Pokemon deleted successfully"}
       return
     end

@@ -38,6 +38,8 @@ GEM
       activemodel (= 5.2.3)
       activesupport (= 5.2.3)
       arel (>= 9.0)
+    activerecord-import (1.0.1)
+      activerecord (>= 3.2)
     activestorage (5.2.3)
       actionpack (= 5.2.3)
       activerecord (= 5.2.3)
@@ -171,6 +173,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers (~> 0.10.0)
+  activerecord-import
   bootsnap (>= 1.1.0)
   byebug
   database_cleaner

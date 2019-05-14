@@ -10,7 +10,8 @@ class Evolution < ApplicationRecord
 
   def check_if_exists
     if Evolution.find_by(pkmn_id: self.pkmn_id)
-      errors.add(:evolution, "Pokemon already involved in an evolution")
+      errors.add(:evolution, "Pokemon #{self.pkmn_id.to_s} already involved in an evolution")
     end
   end
+
 end
